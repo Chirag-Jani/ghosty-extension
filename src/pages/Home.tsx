@@ -1,0 +1,350 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, ChevronDown, Copy, Globe, History, Plus, RefreshCw, Settings, Shield, ShieldCheck, Unlink, X } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// Mock connected sites data
+const mockConnectedSites = [
+  { id: 1, domain: 'raydium.io', favicon: '🌊', connected: true },
+  { id: 2, domain: 'jupiter.ag', favicon: '🪐', connected: false },
+  { id: 3, domain: 'tensor.trade', favicon: '🎨', connected: true },
+];
+
+// Mock burner wallets data
+const mockBurnerWallets = [
+  { id: 1, address: '8xzt...9jLk', fullAddress: '8xztK2mN...9jLk', balance: 2.45, site: 'raydium.io', isActive: true },
+  { id: 2, address: 'Hq3m...7vRt', fullAddress: 'Hq3mP4kL...7vRt', balance: 0.5, site: 'tensor.trade', isActive: false },
+  { id: 3, address: 'F7ka...2mNp', fullAddress: 'F7kaL9qR...2mNp', balance: 0, site: 'jupiter.ag', isActive: false },
+];
+
+const Home = () => {
+  const navigate = useNavigate();
+  const [activeWallet, setActiveWallet] = useState(mockBurnerWallets[0]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showWalletList, setShowWalletList] = useState(false);
+  const [showSitesList, setShowSitesList] = useState(false);
+
+  const totalBalance = mockBurnerWallets.reduce((sum, w) => sum + w.balance, 0);
+
+  const generateNewBurner = () => {
+    setIsGenerating(true);
+    console.log(`[Veil] Generating new burner wallet...`);
+    setTimeout(() => {
+      const newAddr = "F7ka..." + Math.random().toString(36).substring(2, 6);
+      console.log(`[Veil] New burner generated: ${newAddr}`);
+      setIsGenerating(false);
+    }, 1500);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(activeWallet.fullAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleMigrateFunds = () => {
+    console.log(`[Veil] User initiated migration to Privacy Cash...`);
+    console.log(`[Veil] Amount: ${activeWallet.balance} SOL from ${activeWallet.address}`);
+  };
+
+  const handleDisconnect = (domain: string) => {
+    console.log(`[Veil] Disconnecting from ${domain}...`);
+  };
+
+  return (
+    <div className="h-full w-full bg-black text-white relative flex flex-col overflow-hidden font-sans">
+      {/* Ambient Background */}
+      <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-purple-600/10 rounded-full blur-[60px]" />
+      <div className="absolute bottom-[50px] left-[-30px] w-32 h-32 bg-blue-600/10 rounded-full blur-[40px]" />
+
+      {/* Header */}
+      <div className="flex justify-between items-center z-10 px-3 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border border-white/10">
+            <ShieldCheck className="w-3.5 h-3.5 text-white" />
+          </div>
+          <span className="font-bold text-base tracking-tight">Veil</span>
+        </div>
+        <div className="flex gap-1">
+          <button 
+            onClick={() => setShowSitesList(true)}
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 relative"
+          >
+            <Globe className="w-4 h-4 text-gray-400" />
+            {mockConnectedSites.filter(s => s.connected).length > 0 && (
+              <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full text-[9px] font-bold flex items-center justify-center">
+                {mockConnectedSites.filter(s => s.connected).length}
+              </div>
+            )}
+          </button>
+          <button onClick={() => navigate('/history')} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+            <History className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => navigate('/settings')} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+            <Settings className="w-4 h-4 text-gray-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Wallet Selector */}
+      <div className="px-3 py-1.5 z-10">
+        <button
+          onClick={() => setShowWalletList(true)}
+          className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-between transition-colors group"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm">
+              🔒
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-medium text-white">{activeWallet.site}</span>
+                <span className="text-[10px] text-gray-500 font-mono">{activeWallet.address}</span>
+              </div>
+              <span className="text-[10px] text-gray-500">Active Burner</span>
+            </div>
+          </div>
+          <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 px-3 pt-3 pb-3 z-10 flex flex-col">
+        {/* Balance Display */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center mb-3"
+        >
+          <h1 className="text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
+            {activeWallet.balance} <span className="text-xl text-gray-500 font-normal">SOL</span>
+          </h1>
+          <div className="mt-1 text-xs text-gray-500">
+            ≈ ${(activeWallet.balance * 145).toFixed(2)} USD
+          </div>
+        </motion.div>
+
+        {/* Address with Copy */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-colors"
+          >
+            <code className="text-xs text-gray-400 font-mono">{activeWallet.address}</code>
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-green-400" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-gray-500" />
+            )}
+          </button>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button
+            onClick={handleMigrateFunds}
+            disabled={activeWallet.balance === 0}
+            className={`py-2.5 px-3 font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all ${
+              activeWallet.balance > 0
+                ? 'bg-white text-black hover:bg-gray-200'
+                : 'bg-white/10 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Migrate to Privacy
+          </button>
+          <button
+            onClick={generateNewBurner}
+            disabled={isGenerating || activeWallet.balance > 0}
+            className={`py-2.5 px-3 font-medium rounded-lg text-xs border flex items-center justify-center gap-1.5 transition-all ${
+              activeWallet.balance === 0
+                ? 'bg-white/5 text-white border-white/10 hover:bg-white/10'
+                : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
+            }`}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+            {isGenerating ? 'Generating...' : 'New Burner'}
+          </button>
+        </div>
+
+        {activeWallet.balance > 0 && (
+          <p className="text-[10px] text-center text-gray-600 mb-2">
+            Migrate funds before generating a new burner
+          </p>
+        )}
+
+        {/* Connected Site Info */}
+        <div className="mt-auto">
+          <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
+                  <Globe className="w-3.5 h-3.5 text-gray-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-white">{activeWallet.site}</p>
+                  <p className="text-[10px] text-gray-500">Connected via burner</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] text-green-500 font-medium">Live</span>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-[10px] text-gray-600 flex items-center justify-center gap-1 mt-2">
+            <Shield className="w-2.5 h-2.5" />
+            dApps never see your main wallet
+          </p>
+        </div>
+      </div>
+
+      {/* Wallet List Modal */}
+      <AnimatePresence>
+        {showWalletList && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWalletList(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="absolute bottom-0 left-0 right-0 bg-gray-900 rounded-t-2xl z-30 border-t border-white/10"
+            >
+              <div className="flex justify-center pt-2 pb-1">
+                <div className="w-8 h-1 bg-white/20 rounded-full" />
+              </div>
+
+              <div className="flex items-center justify-between px-4 pb-3">
+                <h3 className="text-sm font-bold text-white">Burner Wallets</h3>
+                <button onClick={() => setShowWalletList(false)} className="p-1.5 hover:bg-white/10 rounded-full">
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="px-3 pb-3 max-h-64 overflow-y-auto">
+                {mockBurnerWallets.map((wallet) => (
+                  <button
+                    key={wallet.id}
+                    onClick={() => { setActiveWallet(wallet); setShowWalletList(false); }}
+                    className={`w-full p-3 rounded-lg flex items-center gap-2.5 transition-colors mb-1.5 ${
+                      activeWallet.id === wallet.id
+                        ? 'bg-white/10 border border-white/20'
+                        : 'bg-white/5 border border-transparent hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-base">
+                      🔒
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-white">{wallet.site}</span>
+                        {activeWallet.id === wallet.id && (
+                          <span className="px-1 py-0.5 text-[8px] bg-green-500/20 text-green-400 rounded font-bold">ACTIVE</span>
+                        )}
+                      </div>
+                      <code className="text-[10px] text-gray-500 font-mono">{wallet.address}</code>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-white">{wallet.balance} SOL</p>
+                      <p className="text-[10px] text-gray-500">${(wallet.balance * 145).toFixed(2)}</p>
+                    </div>
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => { setShowWalletList(false); generateNewBurner(); }}
+                  className="w-full p-3 rounded-lg flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 transition-colors mt-1"
+                >
+                  <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+                    <Plus className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-400">Create New Burner</span>
+                </button>
+              </div>
+
+              <div className="px-4 py-3 border-t border-white/10 bg-black/20">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Total Across All Burners</span>
+                  <span className="text-sm font-bold text-white">{totalBalance.toFixed(2)} SOL</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Connected Sites Modal */}
+      <AnimatePresence>
+        {showSitesList && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSitesList(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="absolute bottom-0 left-0 right-0 bg-gray-900 rounded-t-2xl z-30 border-t border-white/10"
+            >
+              <div className="flex justify-center pt-2 pb-1">
+                <div className="w-8 h-1 bg-white/20 rounded-full" />
+              </div>
+
+              <div className="flex items-center justify-between px-4 pb-3">
+                <h3 className="text-sm font-bold text-white">Connected Sites</h3>
+                <button onClick={() => setShowSitesList(false)} className="p-1.5 hover:bg-white/10 rounded-full">
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="px-3 pb-4 max-h-64 overflow-y-auto">
+                {mockConnectedSites.filter(s => s.connected).length === 0 ? (
+                  <div className="text-center py-6">
+                    <Globe className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                    <p className="text-gray-500 text-xs">No connected sites</p>
+                  </div>
+                ) : (
+                  mockConnectedSites.filter(s => s.connected).map((site) => (
+                    <div key={site.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-base">
+                          {site.favicon}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-white">{site.domain}</p>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            <span className="text-[10px] text-gray-500">Connected</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button onClick={() => handleDisconnect(site.domain)} className="p-1.5 hover:bg-red-500/10 rounded-md group">
+                        <Unlink className="w-3.5 h-3.5 text-gray-500 group-hover:text-red-400" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default Home;

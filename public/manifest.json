@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "ghosty",
-  "version": "1.0.0",
-  "description": "Privacy should start when the fund hits your account - not after that.",
+  "name": "Veil",
+  "version": "0.1.0",
+  "description": "Non-custodial privacy layer for Solana payments.",
   "permissions": [
+    "storage",
     "activeTab"
   ],
   "action": {
@@ -15,7 +16,8 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
