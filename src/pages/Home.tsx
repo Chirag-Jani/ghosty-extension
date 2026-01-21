@@ -115,56 +115,61 @@ const Home = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 px-3 pt-3 pb-3 z-10 flex flex-col">
+      <div className="flex-1 px-3 pt-2 pb-3 z-10 flex flex-col">
         {/* Balance Display */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center mb-3"
+          className="text-center mb-4"
         >
-          <h1 className="text-4xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
-            {activeWallet.balance} <span className="text-xl text-gray-500 font-normal">SOL</span>
+          <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400 mb-1">
+            {activeWallet.balance.toFixed(2)}
           </h1>
-          <div className="mt-1 text-xs text-gray-500">
-            ≈ ${(activeWallet.balance * 145).toFixed(2)} USD
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="text-lg text-gray-400 font-medium">SOL</span>
+            <span className="text-xs text-gray-600">•</span>
+            <span className="text-sm text-gray-500 font-medium">
+              ≈ ${(activeWallet.balance * 145).toFixed(2)}
+            </span>
           </div>
         </motion.div>
 
-
-
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="flex flex-col gap-2 mb-2">
           <button
             onClick={handleMigrateFunds}
             disabled={activeWallet.balance === 0}
-            className={`py-2.5 px-3 font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all ${activeWallet.balance > 0
-              ? 'bg-white text-black hover:bg-gray-200'
-              : 'bg-white/10 text-gray-500 cursor-not-allowed'
-              }`}
+            className={`py-3 px-4 font-semibold rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${
+              activeWallet.balance > 0
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 active:scale-[0.98]'
+                : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'
+            }`}
           >
-            <Shield className="w-3.5 h-3.5" />
-            Migrate to Privacy
+            <Shield className="w-4 h-4" />
+            <span>Migrate to Privacy</span>
           </button>
           <button
             onClick={generateNewBurner}
             disabled={isGenerating || activeWallet.balance > 0}
-            className={`py-2.5 px-3 font-medium rounded-lg text-xs border flex items-center justify-center gap-1.5 transition-all ${activeWallet.balance === 0
-              ? 'bg-white/5 text-white border-white/10 hover:bg-white/10'
-              : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
-              }`}
+            className={`py-3 px-4 font-medium rounded-xl text-sm border flex items-center justify-center gap-2 transition-all ${
+              activeWallet.balance === 0
+                ? 'bg-white/5 text-white border-white/20 hover:bg-white/10 hover:border-white/30 active:scale-[0.98]'
+                : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
+            }`}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
-            {isGenerating ? 'Generating...' : 'New Burner'}
+            <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+            <span>{isGenerating ? 'Generating...' : 'New Burner'}</span>
           </button>
         </div>
 
         {activeWallet.balance > 0 && (
-          <p className="text-[10px] text-center text-gray-600 mb-2">
-            Migrate funds before generating a new burner
-          </p>
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <div className="w-1 h-1 rounded-full bg-yellow-400/60" />
+            <p className="text-[10px] text-center text-gray-500">
+              Migrate funds before generating a new burner
+            </p>
+          </div>
         )}
-
-
       </div>
 
       {/* Wallet List Modal */}

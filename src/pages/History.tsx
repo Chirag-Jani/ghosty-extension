@@ -73,15 +73,15 @@ const History = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'connection':
-        return <Globe className="w-4 h-4" />;
+        return <Globe className="w-3.5 h-3.5" />;
       case 'receive':
-        return <ArrowDownLeft className="w-4 h-4" />;
+        return <ArrowDownLeft className="w-3.5 h-3.5" />;
       case 'migrate':
-        return <Shield className="w-4 h-4" />;
+        return <Shield className="w-3.5 h-3.5" />;
       case 'retired':
-        return <ArrowUpRight className="w-4 h-4" />;
+        return <ArrowUpRight className="w-3.5 h-3.5" />;
       default:
-        return <ArrowDownLeft className="w-4 h-4" />;
+        return <ArrowDownLeft className="w-3.5 h-3.5" />;
     }
   };
 
@@ -133,22 +133,22 @@ const History = () => {
   };
 
   return (
-    <div className="h-full w-full bg-black text-white p-4 relative flex flex-col font-sans">
+    <div className="h-full w-full bg-black text-white p-3 relative flex flex-col font-sans">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-4">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-400" />
+      <div className="flex items-center gap-3 mb-3">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+          <ArrowLeft className="w-4 h-4 text-gray-400" />
         </button>
-        <h1 className="text-xl font-bold">Activity</h1>
+        <h1 className="text-lg font-bold">Activity</h1>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1.5 mb-3">
         {(['all', 'connections', 'transfers'] as ActivityFilter[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium capitalize transition-colors ${
               filter === f
                 ? 'bg-white text-black'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
@@ -160,28 +160,33 @@ const History = () => {
       </div>
 
       {/* Activity List */}
-      <div className="space-y-1.5 flex-1 overflow-y-auto">
+      <div className="space-y-1 flex-1 overflow-y-auto">
         {filteredHistory.map((tx) => (
-          <div key={tx.id} className="bg-white/5 border border-white/5 p-2.5 rounded-xl flex items-center justify-between group hover:bg-white/10 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-full ${getIconStyle(tx.type)}`}>
+          <div key={tx.id} className="bg-white/5 border border-white/5 p-2 rounded-lg flex items-center justify-between group hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${getIconStyle(tx.type)}`}>
                 {getIcon(tx.type)}
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-200">{getTitle(tx)}</p>
-                <p className="text-xs text-gray-600 font-mono mt-0.5">
-                  {tx.burner || tx.from}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">{tx.time}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium text-gray-200 truncate">{getTitle(tx)}</p>
+                  {tx.amount && (
+                    <p className={`text-xs font-bold shrink-0 ${tx.type === 'receive' ? 'text-green-400' : 'text-gray-300'}`}>
+                      {tx.type === 'receive' ? '+' : '-'}{tx.amount}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-[10px] text-gray-500 font-mono truncate">
+                    {tx.burner || tx.from}
+                  </p>
+                  <span className="text-[10px] text-gray-600">•</span>
+                  <p className="text-[10px] text-gray-500 shrink-0">{tx.time}</p>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              {tx.amount && (
-                <p className={`text-sm font-bold ${tx.type === 'receive' ? 'text-green-400' : 'text-gray-300'}`}>
-                  {tx.type === 'receive' ? '+' : '-'}{tx.amount}
-                </p>
-              )}
-              <p className={`text-[10px] uppercase tracking-wide ${getStatusStyle(tx.status)}`}>
+            <div className="text-right shrink-0 ml-2">
+              <p className={`text-[9px] uppercase tracking-wide font-medium ${getStatusStyle(tx.status)}`}>
                 {tx.status}
               </p>
             </div>

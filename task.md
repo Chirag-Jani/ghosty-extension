@@ -26,6 +26,11 @@
 - [x] Burner management stats in Settings
 - [x] Updated messaging: "dApps never see your main wallet"
 
+### UI/UX Refinements ✅
+- [x] Enhanced balance display section with improved typography and gradient effects
+- [x] Improved action buttons (Migrate to Privacy & New Burner) with gradient styling and better visual hierarchy
+- [x] More compact activity tab layout with optimized spacing and information density
+
 ---
 
 ## Milestone 2: Core Wallet & Burner Logic
