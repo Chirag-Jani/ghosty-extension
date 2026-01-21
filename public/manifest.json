@@ -10,9 +10,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "vite.svg",
-      "48": "vite.svg",
-      "128": "vite.svg"
+      "16": "/veil.png",
+      "48": "/veil.png",
+      "128": "/veil.png"
     }
   },
   "background": {

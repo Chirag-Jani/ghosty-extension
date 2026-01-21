@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, Copy, Eye, EyeOff, Shield } from 'lucide-react';
+import { ArrowRight, Check, Copy, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -64,8 +64,8 @@ const Onboarding = () => {
             className="z-10 w-full max-w-xs space-y-8"
           >
             <div className="text-center space-y-6">
-              <div className="mx-auto w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="mx-auto w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md overflow-hidden p-3">
+                <img src="/veil.png" alt="Veil Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Veil</h1>

@@ -133,9 +133,9 @@ const History = () => {
   };
 
   return (
-    <div className="h-full w-full bg-black text-white p-5 relative flex flex-col font-sans">
+    <div className="h-full w-full bg-black text-white p-4 relative flex flex-col font-sans">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-4">
         <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
           <ArrowLeft className="w-5 h-5 text-gray-400" />
         </button>
@@ -143,7 +143,7 @@ const History = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-4">
         {(['all', 'connections', 'transfers'] as ActivityFilter[]).map((f) => (
           <button
             key={f}
@@ -160,9 +160,9 @@ const History = () => {
       </div>
 
       {/* Activity List */}
-      <div className="space-y-3 flex-1 overflow-y-auto">
+      <div className="space-y-1.5 flex-1 overflow-y-auto">
         {filteredHistory.map((tx) => (
-          <div key={tx.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex items-center justify-between group hover:bg-white/10 transition-colors">
+          <div key={tx.id} className="bg-white/5 border border-white/5 p-2.5 rounded-xl flex items-center justify-between group hover:bg-white/10 transition-colors">
             <div className="flex items-center gap-3">
               <div className={`p-2.5 rounded-full ${getIconStyle(tx.type)}`}>
                 {getIcon(tx.type)}

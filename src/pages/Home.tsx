@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ChevronDown, Copy, Globe, History, Plus, RefreshCw, Settings, Shield, ShieldCheck, Unlink, X } from 'lucide-react';
+import { Check, ChevronDown, Copy, Globe, History, Plus, RefreshCw, Settings, Shield, Unlink, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,6 +24,7 @@ const Home = () => {
   const [copied, setCopied] = useState(false);
   const [showWalletList, setShowWalletList] = useState(false);
   const [showSitesList, setShowSitesList] = useState(false);
+  const [showCopyPopup, setShowCopyPopup] = useState(false);
 
   const totalBalance = mockBurnerWallets.reduce((sum, w) => sum + w.balance, 0);
 
@@ -58,16 +59,42 @@ const Home = () => {
       <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-purple-600/10 rounded-full blur-[60px]" />
       <div className="absolute bottom-[50px] left-[-30px] w-32 h-32 bg-blue-600/10 rounded-full blur-[40px]" />
 
-      {/* Header */}
-      <div className="flex justify-between items-center z-10 px-3 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border border-white/10">
-            <ShieldCheck className="w-3.5 h-3.5 text-white" />
+      {/* Header & Wallet Selector */}
+      <div className="flex justify-between items-start z-10 px-3 py-3 relative">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowWalletList(true)}
+            className="flex items-center gap-3 transition-all group text-left"
+          >
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-lg border border-white/10 group-hover:scale-105 transition-transform">
+              <img src="/veil.png" alt="Veil" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-[11px] text-gray-500 font-medium leading-none mb-0.5">@veil</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-white tracking-tight">{activeWallet.site}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-300 transition-colors" />
+              </div>
+            </div>
+          </button>
+
+          <div className="flex items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCopyPopup(!showCopyPopup);
+              }}
+              className={`p-1 mt-3 rounded-md transition-colors relative z-[60] ${showCopyPopup ? 'bg-white/10 text-white' : 'text-gray-500 hover:bg-white/10 hover:text-white'}`}
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Address Copy Popup (Phantom style) moved to root level */}
           </div>
-          <span className="font-bold text-base tracking-tight">Veil</span>
         </div>
-        <div className="flex gap-1">
-          <button 
+
+        <div className="flex gap-1 pt-0.5">
+          <button
             onClick={() => setShowSitesList(true)}
             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 relative"
           >
@@ -87,28 +114,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Wallet Selector */}
-      <div className="px-3 py-1.5 z-10">
-        <button
-          onClick={() => setShowWalletList(true)}
-          className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-between transition-colors group"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm">
-              🔒
-            </div>
-            <div className="text-left">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-white">{activeWallet.site}</span>
-                <span className="text-[10px] text-gray-500 font-mono">{activeWallet.address}</span>
-              </div>
-              <span className="text-[10px] text-gray-500">Active Burner</span>
-            </div>
-          </div>
-          <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
-        </button>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 px-3 pt-3 pb-3 z-10 flex flex-col">
         {/* Balance Display */}
@@ -125,31 +130,17 @@ const Home = () => {
           </div>
         </motion.div>
 
-        {/* Address with Copy */}
-        <div className="flex justify-center mb-4">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-colors"
-          >
-            <code className="text-xs text-gray-400 font-mono">{activeWallet.address}</code>
-            {copied ? (
-              <Check className="w-3.5 h-3.5 text-green-400" />
-            ) : (
-              <Copy className="w-3.5 h-3.5 text-gray-500" />
-            )}
-          </button>
-        </div>
+
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             onClick={handleMigrateFunds}
             disabled={activeWallet.balance === 0}
-            className={`py-2.5 px-3 font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all ${
-              activeWallet.balance > 0
-                ? 'bg-white text-black hover:bg-gray-200'
-                : 'bg-white/10 text-gray-500 cursor-not-allowed'
-            }`}
+            className={`py-2.5 px-3 font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all ${activeWallet.balance > 0
+              ? 'bg-white text-black hover:bg-gray-200'
+              : 'bg-white/10 text-gray-500 cursor-not-allowed'
+              }`}
           >
             <Shield className="w-3.5 h-3.5" />
             Migrate to Privacy
@@ -157,11 +148,10 @@ const Home = () => {
           <button
             onClick={generateNewBurner}
             disabled={isGenerating || activeWallet.balance > 0}
-            className={`py-2.5 px-3 font-medium rounded-lg text-xs border flex items-center justify-center gap-1.5 transition-all ${
-              activeWallet.balance === 0
-                ? 'bg-white/5 text-white border-white/10 hover:bg-white/10'
-                : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
-            }`}
+            className={`py-2.5 px-3 font-medium rounded-lg text-xs border flex items-center justify-center gap-1.5 transition-all ${activeWallet.balance === 0
+              ? 'bg-white/5 text-white border-white/10 hover:bg-white/10'
+              : 'bg-white/5 text-gray-600 border-white/5 cursor-not-allowed'
+              }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
             {isGenerating ? 'Generating...' : 'New Burner'}
@@ -174,31 +164,7 @@ const Home = () => {
           </p>
         )}
 
-        {/* Connected Site Info */}
-        <div className="mt-auto">
-          <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
-                  <Globe className="w-3.5 h-3.5 text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-white">{activeWallet.site}</p>
-                  <p className="text-[10px] text-gray-500">Connected via burner</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] text-green-500 font-medium">Live</span>
-              </div>
-            </div>
-          </div>
-          
-          <p className="text-[10px] text-gray-600 flex items-center justify-center gap-1 mt-2">
-            <Shield className="w-2.5 h-2.5" />
-            dApps never see your main wallet
-          </p>
-        </div>
+
       </div>
 
       {/* Wallet List Modal */}
@@ -235,14 +201,13 @@ const Home = () => {
                   <button
                     key={wallet.id}
                     onClick={() => { setActiveWallet(wallet); setShowWalletList(false); }}
-                    className={`w-full p-3 rounded-lg flex items-center gap-2.5 transition-colors mb-1.5 ${
-                      activeWallet.id === wallet.id
-                        ? 'bg-white/10 border border-white/20'
-                        : 'bg-white/5 border border-transparent hover:bg-white/10'
-                    }`}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2.5 transition-colors mb-1.5 ${activeWallet.id === wallet.id
+                      ? 'bg-white/10 border border-white/20'
+                      : 'bg-white/5 border border-transparent hover:bg-white/10'
+                      }`}
                   >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-base">
-                      🔒
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
+                      <img src="/veil.png" alt="Veil" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-1.5">
@@ -262,7 +227,7 @@ const Home = () => {
 
                 <button
                   onClick={() => { setShowWalletList(false); generateNewBurner(); }}
-                  className="w-full p-3 rounded-lg flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 transition-colors mt-1"
+                  className="w-full p-2.5 rounded-lg flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 transition-colors mt-1"
                 >
                   <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
                     <Plus className="w-4 h-4 text-gray-400" />
@@ -319,7 +284,7 @@ const Home = () => {
                   </div>
                 ) : (
                   mockConnectedSites.filter(s => s.connected).map((site) => (
-                    <div key={site.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between mb-1.5">
+                    <div key={site.id} className="p-2.5 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-base">
                           {site.favicon}
@@ -338,6 +303,47 @@ const Home = () => {
                     </div>
                   ))
                 )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Address Copy Popup (Phantom style) */}
+      <AnimatePresence>
+        {showCopyPopup && (
+          <>
+            <div
+              className="fixed inset-0 z-[50] bg-transparent"
+              onClick={() => setShowCopyPopup(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className="absolute top-14 left-3 w-64 bg-gray-900 border border-white/10 rounded-md shadow-2xl z-[60] p-1 overflow-hidden"
+            >
+              <div
+                className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group cursor-pointer"
+                onClick={() => { handleCopy(); }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-black flex items-center justify-center border border-white/10">
+                    <div className="w-3.5 h-3.5 bg-gradient-to-tr from-purple-500 to-green-500 rounded-full" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">Solana</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500 font-mono">{activeWallet.address}</span>
+                  {copied ? (
+                    <Check className="w-3 h-3 text-green-400" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-gray-500 group-hover:text-white" />
+                  )}
+                </div>
               </div>
             </motion.div>
           </>
