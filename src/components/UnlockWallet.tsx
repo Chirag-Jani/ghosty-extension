@@ -19,8 +19,11 @@ const UnlockWallet = ({ onUnlock }: UnlockWalletProps) => {
 
     setIsUnlocking(true);
     setError('');
-
+    
     try {
+      // Add a small delay to show loading state and make unlock feel more deliberate
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Try to decrypt the seed to verify password
       await getDecryptedSeed(password);
       await unlockWallet();
@@ -28,7 +31,6 @@ const UnlockWallet = ({ onUnlock }: UnlockWalletProps) => {
     } catch (err) {
       console.error('[Veil] Unlock error:', err);
       setError('Incorrect password. Please try again.');
-    } finally {
       setIsUnlocking(false);
     }
   };
@@ -47,11 +49,10 @@ const UnlockWallet = ({ onUnlock }: UnlockWalletProps) => {
 
       <div className="z-10 w-full max-w-xs space-y-6">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md overflow-hidden p-3">
-            <img src="/veil.png" alt="Veil Logo" className="w-full h-full object-contain" />
+          <div className="mx-auto w-32 h-32 flex items-center justify-center overflow-hidden p-3">
+            <img src="/veil_shield.png" alt="Veil Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Unlock Veil</h1>
             <p className="text-gray-400 mt-2 text-sm">
               Enter your password to access your wallet
             </p>

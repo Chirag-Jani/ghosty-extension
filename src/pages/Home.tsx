@@ -246,8 +246,8 @@ const Home = () => {
             onClick={() => setShowWalletList(true)}
             className="flex items-center gap-3 transition-all group text-left"
           >
-            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-lg border border-white/10 group-hover:scale-105 transition-transform">
-              <img src="/veil.png" alt="Veil" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+              <img src="/veil_shield.png" alt="Veil" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col justify-center">
               <span className="text-[11px] text-gray-500 font-medium leading-none mb-0.5">@veil</span>
@@ -387,8 +387,8 @@ const Home = () => {
                       : 'bg-white/5 border border-transparent hover:bg-white/10'
                       }`}
                   >
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
-                      <img src="/veil.png" alt="Veil" className="w-full h-full object-cover" />
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden shrink-0">
+                      <img src="/veil_shield.png" alt="Veil" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-1.5">
@@ -490,8 +490,8 @@ const Home = () => {
                 onClick={() => { handleCopy(); }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-black flex items-center justify-center border border-white/10">
-                    <div className="w-3.5 h-3.5 bg-gradient-to-tr from-purple-500 to-green-500 rounded-full" />
+                  <div className="w-3 h-3 rounded-full bg-black flex items-center justify-center border border-white/10">
+                    <img src="/solana.svg" alt="Solana" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-white">Solana</p>

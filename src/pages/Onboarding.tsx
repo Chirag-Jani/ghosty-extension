@@ -132,7 +132,7 @@ const Onboarding = () => {
           >
             <div className="text-center space-y-6">
               <div className="mx-auto w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-md overflow-hidden p-3">
-                <img src="/veil.png" alt="Veil Logo" className="w-full h-full object-contain" />
+                <img src="/veil_shield.png" alt="Veil Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Veil</h1>
