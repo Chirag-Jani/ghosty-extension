@@ -6,11 +6,13 @@ import {
 } from "@solana/web3.js";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowDownUp,
   ArrowUp,
   ArrowUpRight,
   Check,
   ChevronDown,
   Copy,
+  DollarSign,
   Globe,
   History,
   Plus,
@@ -22,6 +24,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ComingSoonModal from "../components/ComingSoonModal";
 import DepositModal from "../components/DepositModal";
 import TransferModal from "../components/TransferModal";
 import UnlockWallet from "../components/UnlockWallet";
@@ -73,6 +76,9 @@ const Home = () => {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] =
+    useState<string>("This feature");
   const [privateBalance, setPrivateBalance] = useState<number>(0);
   const [password, setPassword] = useState(""); // Store password in memory during session
   const [privacyCashMode, setPrivacyCashMode] = useState<boolean>(false);
@@ -247,7 +253,7 @@ const Home = () => {
     const fetchSolPrice = async () => {
       try {
         const response = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
         );
         if (!response.ok) {
           throw new Error("Failed to fetch SOL price");
@@ -417,8 +423,22 @@ const Home = () => {
     if (!privacyCashMode) {
       throw new Error("Privacy Cash mode is not enabled");
     }
-    if (!activeWallet || !password) {
-      throw new Error("Wallet not available");
+    if (!activeWallet) {
+      throw new Error("No active wallet selected");
+    }
+
+    // Try to get password from state or sessionStorage
+    let currentPassword = password;
+    if (!currentPassword) {
+      const tempPassword = sessionStorage.getItem("veil:temp_password");
+      if (tempPassword) {
+        currentPassword = tempPassword;
+        setPassword(tempPassword);
+      }
+    }
+
+    if (!currentPassword) {
+      throw new Error("Wallet is locked. Please unlock your wallet first.");
     }
 
     const txId = generateTransactionId();
@@ -442,7 +462,10 @@ const Home = () => {
 
       // Ensure service is initialized
       if (!service.isInitialized()) {
-        const keypair = await getKeypairForIndex(password, activeWallet.index);
+        const keypair = await getKeypairForIndex(
+          currentPassword,
+          activeWallet.index,
+        );
         await service.initialize(keypair);
       }
 
@@ -484,8 +507,22 @@ const Home = () => {
     if (!privacyCashMode) {
       throw new Error("Privacy Cash mode is not enabled");
     }
-    if (!activeWallet || !password) {
-      throw new Error("Wallet not available");
+    if (!activeWallet) {
+      throw new Error("No active wallet selected");
+    }
+
+    // Try to get password from state or sessionStorage
+    let currentPassword = password;
+    if (!currentPassword) {
+      const tempPassword = sessionStorage.getItem("veil:temp_password");
+      if (tempPassword) {
+        currentPassword = tempPassword;
+        setPassword(tempPassword);
+      }
+    }
+
+    if (!currentPassword) {
+      throw new Error("Wallet is locked. Please unlock your wallet first.");
     }
 
     const txId = generateTransactionId();
@@ -511,7 +548,10 @@ const Home = () => {
 
       // Ensure service is initialized
       if (!service.isInitialized()) {
-        const keypair = await getKeypairForIndex(password, activeWallet.index);
+        const keypair = await getKeypairForIndex(
+          currentPassword,
+          activeWallet.index,
+        );
         await service.initialize(keypair);
       }
 
@@ -547,8 +587,40 @@ const Home = () => {
     amount: number,
     recipient: string,
   ): Promise<string> => {
-    if (!activeWallet || !password) {
-      throw new Error("Wallet not available");
+    if (!activeWallet) {
+      throw new Error("No active wallet selected");
+    }
+
+    // Check if wallet is actually locked
+    const walletLocked = await isWalletLocked();
+    if (walletLocked) {
+      throw new Error("Wallet is locked. Please unlock your wallet first.");
+    }
+
+    // Try to get password from state or sessionStorage
+    let currentPassword = password;
+    if (!currentPassword) {
+      const tempPassword = sessionStorage.getItem("veil:temp_password");
+      if (tempPassword) {
+        currentPassword = tempPassword;
+        setPassword(tempPassword); // Store in state for future use
+      }
+    }
+
+    if (!currentPassword) {
+      // If wallet is unlocked but password not found, this is a state issue
+      // Prompt user to unlock again
+      setIsLocked(true);
+      throw new Error("Session expired. Please unlock your wallet again.");
+    }
+
+    // Check if there's enough balance for the transfer + fees
+    const feeEstimate = 0.000005; // ~5000 lamports
+    const requiredBalance = amount + feeEstimate;
+    if (activeWallet.balance < requiredBalance) {
+      throw new Error(
+        `Insufficient balance. You need at least ${requiredBalance.toFixed(6)} SOL (including transaction fees).`,
+      );
     }
 
     const txId = generateTransactionId();
@@ -568,54 +640,110 @@ const Home = () => {
 
     try {
       const rpcManager = createRPCManager();
-      const keypair = await getKeypairForIndex(password, activeWallet.index);
+      const keypair = await getKeypairForIndex(
+        currentPassword,
+        activeWallet.index,
+      );
+
+      console.log("[Veil] Starting transfer:", {
+        from: keypair.publicKey.toBase58(),
+        to: recipient,
+        amount,
+        lamports: Math.floor(amount * LAMPORTS_PER_SOL),
+      });
 
       const signature = await rpcManager.executeWithRetry(
         async (connection) => {
-          const recipientPubkey = new PublicKey(recipient);
-          const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
-
-          // Get recent blockhash
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-
-          // Create transfer transaction
-          const tx = new Transaction().add(
-            SystemProgram.transfer({
-              fromPubkey: keypair.publicKey,
-              toPubkey: recipientPubkey,
-              lamports,
-            }),
-          );
-
-          tx.recentBlockhash = blockhash;
-          tx.feePayer = keypair.publicKey;
-
-          // Sign transaction
-          tx.sign(keypair);
-
-          // Send transaction
-          const sig = await connection.sendRawTransaction(tx.serialize(), {
-            skipPreflight: false,
-            maxRetries: 3,
-          });
-
-          // Confirm transaction (with timeout handling)
           try {
-            await connection.confirmTransaction(
-              {
-                signature: sig,
-                blockhash,
-                lastValidBlockHeight,
-              },
-              "confirmed"
-            );
-          } catch (confirmError) {
-            // Transaction was sent but confirmation failed - still return signature
-            // The transaction might still succeed, we'll check status later
-            console.warn("[Veil] Transaction confirmation warning:", confirmError);
-          }
+            const recipientPubkey = new PublicKey(recipient);
+            const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
 
-          return sig;
+            console.log("[Veil] Getting latest blockhash...");
+            // Get recent blockhash
+            const { blockhash, lastValidBlockHeight } =
+              await connection.getLatestBlockhash("confirmed");
+
+            console.log("[Veil] Creating transaction...");
+            // Create transfer transaction
+            const tx = new Transaction().add(
+              SystemProgram.transfer({
+                fromPubkey: keypair.publicKey,
+                toPubkey: recipientPubkey,
+                lamports,
+              }),
+            );
+
+            tx.recentBlockhash = blockhash;
+            tx.feePayer = keypair.publicKey;
+
+            console.log("[Veil] Signing transaction...");
+            // Sign transaction
+            tx.sign(keypair);
+
+            console.log("[Veil] Sending transaction...");
+            // Send transaction
+            const sig = await connection.sendRawTransaction(tx.serialize(), {
+              skipPreflight: false,
+              maxRetries: 3,
+            });
+
+            console.log("[Veil] Transaction sent, signature:", sig);
+
+            // Confirm transaction (non-blocking - don't fail if confirmation times out)
+            // The transaction is already sent and will process on-chain
+            try {
+              console.log("[Veil] Confirming transaction...");
+
+              // Use Promise.race with timeout to prevent hanging
+              const confirmationPromise = connection.confirmTransaction(
+                {
+                  signature: sig,
+                  blockhash,
+                  lastValidBlockHeight,
+                },
+                "confirmed",
+              );
+
+              // 20 second timeout for confirmation
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(
+                  () => reject(new Error("Confirmation timeout")),
+                  20000,
+                );
+              });
+
+              await Promise.race([confirmationPromise, timeoutPromise]);
+              console.log("[Veil] Transaction confirmed");
+            } catch (confirmError) {
+              // Transaction was sent successfully - confirmation timeout/error is not a failure
+              // The transaction will process on-chain even if we can't confirm it here
+              // This is expected behavior - confirmation can timeout but transaction still succeeds
+              const errorMsg =
+                confirmError instanceof Error
+                  ? confirmError.message
+                  : String(confirmError);
+              if (
+                errorMsg.includes("timeout") ||
+                errorMsg.includes("expired") ||
+                errorMsg.includes("block height")
+              ) {
+                console.log(
+                  "[Veil] Transaction sent successfully. Confirmation timed out, but transaction is processing on-chain.",
+                );
+              } else {
+                console.log(
+                  "[Veil] Transaction sent successfully. Confirmation may take longer, but transaction is processing.",
+                  errorMsg,
+                );
+              }
+              // Don't throw - transaction was sent, that's success
+            }
+
+            return sig;
+          } catch (stepError) {
+            console.error("[Veil] Error in transfer step:", stepError);
+            throw stepError;
+          }
         },
       );
 
@@ -629,14 +757,21 @@ const Home = () => {
 
       return signature;
     } catch (error) {
+      console.error("[Veil] Transfer error details:", error);
       logError(error, "transferring SOL");
 
       // Update transaction as failed
       transaction.status = "failed";
-      transaction.error = getErrorMessage(error, "transferring funds");
+      const errorMessage = getErrorMessage(error, "transferring funds");
+      transaction.error = errorMessage;
       await storeTransaction(transaction);
 
-      throw error;
+      // Re-throw with more context
+      const enhancedError =
+        error instanceof Error
+          ? new Error(`${errorMessage}: ${error.message}`)
+          : new Error(errorMessage);
+      throw enhancedError;
     }
   };
 
@@ -764,13 +899,11 @@ const Home = () => {
           <h1 className="text-4xl font-bold text-white mb-1">
             ${(totalBalance * (solPrice || 145)).toFixed(2)}
           </h1>
-          <p className="text-sm text-gray-400">
-            {totalBalance.toFixed(4)} SOL
-          </p>
+          <p className="text-sm text-gray-400">{totalBalance.toFixed(4)} SOL</p>
         </motion.div>
 
         {/* Action Buttons - Receive & Send */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-4 gap-3 mb-4">
           <button
             onClick={() => {
               // Show receive address (copy functionality)
@@ -780,12 +913,14 @@ const Home = () => {
                 setTimeout(() => setShowCopyPopup(false), 2000);
               }
             }}
-            className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            className="flex flex-col items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors rounded-xl"
           >
-            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
               <QrCode className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xs font-medium text-white">Receive</span>
+            <span className="text-xs font-medium text-white mb-1.5">
+              Receive
+            </span>
           </button>
 
           <button
@@ -795,16 +930,36 @@ const Home = () => {
               }
             }}
             disabled={!activeWallet || (activeWallet?.balance ?? 0) === 0}
-            className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-colors ${
-              activeWallet && activeWallet.balance > 0
-                ? "bg-white/5 border-white/10 hover:bg-white/10"
-                : "bg-white/5 border-white/5 opacity-50 cursor-not-allowed"
-            }`}
+            className="flex flex-col items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors rounded-xl"
           >
-            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
               <ArrowUpRight className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xs font-medium text-white">Send</span>
+            <span className="text-xs font-medium text-white mb-1.5">Send</span>
+          </button>
+          <button
+            onClick={() => {
+              setComingSoonFeature("Swap");
+              setShowComingSoonModal(true);
+            }}
+            className="flex flex-col items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors rounded-xl"
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+              <ArrowDownUp className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xs font-medium text-white mb-1.5">Swap</span>
+          </button>
+          <button
+            onClick={() => {
+              setComingSoonFeature("Buy");
+              setShowComingSoonModal(true);
+            }}
+            className="flex flex-col items-center justify-center bg-white/5 border border-white/10 hover:bg-white/10 transition-colors rounded-xl"
+          >
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xs font-medium text-white mb-1.5">Buy</span>
           </button>
         </div>
 
@@ -813,7 +968,7 @@ const Home = () => {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-white">Tokens</h2>
           </div>
-          
+
           {/* SOL Token Card */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -827,7 +982,9 @@ const Home = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-white">Solana</span>
+                    <span className="text-sm font-medium text-white">
+                      Solana
+                    </span>
                     <Check className="w-3.5 h-3.5 text-purple-400" />
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
@@ -858,7 +1015,9 @@ const Home = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-white">Private SOL</span>
+                      <span className="text-sm font-medium text-white">
+                        Private SOL
+                      </span>
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {privateBalance.toFixed(5)} SOL
@@ -1151,6 +1310,13 @@ const Home = () => {
           fromAddress={activeWallet.fullAddress}
         />
       )}
+
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        isOpen={showComingSoonModal}
+        onClose={() => setShowComingSoonModal(false)}
+        feature={comingSoonFeature}
+      />
     </div>
   );
 };

@@ -87,7 +87,10 @@ const TransferModal = ({
         onClose();
       }, 1000);
     } catch (err) {
-      setError(getErrorMessage(err, 'transferring funds'));
+      console.error("[TransferModal] Transfer error:", err);
+      const errorMsg = getErrorMessage(err, 'transferring funds');
+      console.error("[TransferModal] Error message:", errorMsg);
+      setError(errorMsg);
       setIsTransferring(false);
     }
   };
@@ -208,7 +211,11 @@ const TransferModal = ({
                   disabled={isTransferring}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-sm"
                 />
-                {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+                {error && (
+                  <div className="mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                    <p className="text-xs text-red-400 font-medium">{error}</p>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
