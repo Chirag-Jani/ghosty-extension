@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, ArrowRight, Sparkles } from 'lucide-react';
 import veilLogo from '@/assets/logo.png';
-
-
+import { DownloadExtensionDialog } from '@/components/DownloadExtensionDialog';
 
 export const HeroSection = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Background Elements */}
@@ -70,10 +71,14 @@ export const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <a href="#" className="btn-primary text-base px-8 py-4">
+            <button 
+              type="button"
+              onClick={() => setIsDialogOpen(true)}
+              className="btn-primary text-base px-8 py-4"
+            >
               <Shield className="w-5 h-5" />
               Install Veil Extension
-            </a>
+            </button>
             <a href="#how-exactly" className="btn-secondary text-base px-8 py-4">
               See How It Works
               <ArrowRight className="w-5 h-5" />
@@ -102,6 +107,7 @@ export const HeroSection = () => {
           </motion.div> */}
         </div>
       </div>
+      <DownloadExtensionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </section>
   );
 };

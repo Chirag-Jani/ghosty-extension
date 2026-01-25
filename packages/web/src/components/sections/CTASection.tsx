@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Shield, ArrowRight, ExternalLink } from 'lucide-react';
 import veilLogo from '@/assets/veil_tp.png';
+import { DownloadExtensionDialog } from '@/components/DownloadExtensionDialog';
 
 export const CTASection = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
     <section className="py-24 md:py-32">
       <div className="section-container">
@@ -27,10 +30,14 @@ export const CTASection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center reveal-up">
-              <a href="#" className="btn-primary text-base px-8 py-4">
+              <button 
+                type="button"
+                onClick={() => setIsDialogOpen(true)}
+                className="btn-primary text-base px-8 py-4"
+              >
                 <Shield className="w-5 h-5" />
                 Install Veil Extension
-              </a>
+              </button>
               <a href="#" className="btn-secondary text-base px-8 py-4">
                 Read Documentation
                 <ExternalLink className="w-5 h-5" />
@@ -54,6 +61,7 @@ export const CTASection = () => {
           </div>
         </div>
       </div>
+      <DownloadExtensionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </section>
   );
 };

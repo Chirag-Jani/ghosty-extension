@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Shield, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import veilLogo from '@/assets/logo.png';
+import { DownloadExtensionDialog } from '@/components/DownloadExtensionDialog';
 
 const navItems = [
   { label: 'Home', href: '#', id: 'home' },
@@ -16,6 +17,7 @@ const navItems = [
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
@@ -105,9 +107,13 @@ export const Navbar = () => {
               Docs
               <ExternalLink className="w-4 h-4" />
             </a> */}
-            <a href="#" className="btn-primary">
+            <button 
+              type="button"
+              onClick={() => setIsDialogOpen(true)}
+              className="btn-primary"
+            >
               Install Extension
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -149,14 +155,22 @@ export const Navbar = () => {
                   Docs
                   <ExternalLink className="w-4 h-4" />
                 </a> */}
-                <a href="#" className="btn-primary justify-center">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setIsDialogOpen(true);
+                    setIsOpen(false);
+                  }}
+                  className="btn-primary justify-center"
+                >
                   Install Extension
-                </a>
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      <DownloadExtensionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </motion.header>
   );
 };

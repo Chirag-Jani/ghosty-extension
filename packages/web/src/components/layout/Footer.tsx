@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { ExternalLink, Github, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import veilLogo from '@/assets/veil_tp.png';
+import { DownloadExtensionDialog } from '@/components/DownloadExtensionDialog';
 
 // X (formerly Twitter) icon component
 const XIcon = ({ className }: { className?: string }) => (
@@ -36,6 +38,8 @@ const footerLinks = {
 };
 
 export const Footer = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
   return (
     <footer className="border-t border-border bg-card/50">
       <div className="section-container py-16">
@@ -58,9 +62,19 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </a>
+                  {link.label === 'Install Extension' ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsDialogOpen(true)}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
+                    >
+                      {link.label}
+                    </button>
+                  ) : (
+                    <a href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -134,6 +148,7 @@ export const Footer = () => {
           </p> */}
         </div>
       </div>
+      <DownloadExtensionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </footer>
   );
 };
