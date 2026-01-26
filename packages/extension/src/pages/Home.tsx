@@ -320,17 +320,37 @@ const Home = () => {
       }
 
       const locked = await isWalletLocked();
+      
+      // If wallet appears unlocked, validate session expiry
+      let shouldBeLocked = locked;
+      if (!locked) {
+        const sessionValid = await isSessionValid();
+        if (!sessionValid) {
+          // Session expired - lock the wallet
+          shouldBeLocked = true;
+          setIsLocked(true);
+          setPassword("");
+          sessionStorage.removeItem("veil:session_password");
+          // Clear chrome storage passwords
+          try {
+            await chrome.storage.session.remove("veil:session_password");
+          } catch {
+            // Ignore
+          }
+          await chrome.storage.local.remove("veil:temp_session_password");
+        }
+      }
 
       // Set both states together to avoid race condition
       setHasWalletState(true);
-      setIsLocked(locked);
+      setIsLocked(shouldBeLocked);
       setIsLoading(false);
 
       // Load Privacy Cash mode setting
       const privacyCashEnabled = await getPrivacyCashMode();
       setPrivacyCashMode(privacyCashEnabled);
 
-      if (!locked) {
+      if (!shouldBeLocked) {
         // Restore password from sessionStorage if available
         const sessionPassword = sessionStorage.getItem("veil:session_password");
         if (sessionPassword && !password) {
@@ -666,26 +686,84 @@ const Home = () => {
       throw new Error("No active wallet selected");
     }
 
-    // Try to get password from state or sessionStorage
+    // Validate session expiry first
+    const sessionValid = await isSessionValid();
+    if (!sessionValid) {
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
+      throw new Error(
+        "Session expired. Please close this dialog, unlock your wallet, and try again.",
+      );
+    }
+
+    // Try to get password from state or storage
     let currentPassword = password;
     if (!currentPassword) {
-      // Check session password first (persistent across remounts)
+      // Check sessionStorage first
       const sessionPassword = sessionStorage.getItem("veil:session_password");
       if (sessionPassword) {
         currentPassword = sessionPassword;
         setPassword(sessionPassword);
       } else {
-        // Fallback to temp password
+        // Check chrome.storage.session
+        try {
+          const sessionData = await chrome.storage.session.get(
+            "veil:session_password",
+          );
+          if (sessionData["veil:session_password"]) {
+            currentPassword = sessionData["veil:session_password"] as string;
+            setPassword(currentPassword);
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // Ignore
+        }
+      }
+
+      // If still no password, check temp password in sessionStorage
+      if (!currentPassword) {
         const tempPassword = sessionStorage.getItem("veil:temp_password");
         if (tempPassword) {
           currentPassword = tempPassword;
           setPassword(tempPassword);
         }
       }
+
+      // Final fallback: check chrome.storage.local
+      if (!currentPassword) {
+        try {
+          const localData = await chrome.storage.local.get(
+            "veil:temp_session_password",
+          );
+          if (localData["veil:temp_session_password"]) {
+            currentPassword = localData["veil:temp_session_password"] as string;
+            setPassword(currentPassword);
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // Ignore
+        }
+      }
     }
 
     if (!currentPassword) {
-      // Password not available - need to re-unlock
+      // Password not available after checking all storage - lock wallet
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
       throw new Error(
         "Session expired. Please close this dialog, unlock your wallet, and try again.",
       );
@@ -778,27 +856,84 @@ const Home = () => {
       throw new Error("No active wallet selected");
     }
 
-    // Try to get password from state or sessionStorage
+    // Validate session expiry first
+    const sessionValid = await isSessionValid();
+    if (!sessionValid) {
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
+      throw new Error(
+        "Session expired. Please close this dialog, unlock your wallet, and try again.",
+      );
+    }
+
+    // Try to get password from state or storage
     let currentPassword = password;
     if (!currentPassword) {
-      // Check session password first (persistent across remounts)
+      // Check sessionStorage first
       const sessionPassword = sessionStorage.getItem("veil:session_password");
       if (sessionPassword) {
         currentPassword = sessionPassword;
         setPassword(sessionPassword);
       } else {
-        // Fallback to temp password
+        // Check chrome.storage.session
+        try {
+          const sessionData = await chrome.storage.session.get(
+            "veil:session_password",
+          );
+          if (sessionData["veil:session_password"]) {
+            currentPassword = sessionData["veil:session_password"] as string;
+            setPassword(currentPassword);
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // Ignore
+        }
+      }
+
+      // If still no password, check temp password in sessionStorage
+      if (!currentPassword) {
         const tempPassword = sessionStorage.getItem("veil:temp_password");
         if (tempPassword) {
           currentPassword = tempPassword;
           setPassword(tempPassword);
         }
       }
+
+      // Final fallback: check chrome.storage.local
+      if (!currentPassword) {
+        try {
+          const localData = await chrome.storage.local.get(
+            "veil:temp_session_password",
+          );
+          if (localData["veil:temp_session_password"]) {
+            currentPassword = localData["veil:temp_session_password"] as string;
+            setPassword(currentPassword);
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // Ignore
+        }
+      }
     }
 
     if (!currentPassword) {
-      // Password not available - need to re-unlock
-      // Just throw the error, the modal will close and user can unlock and retry
+      // Password not available after checking all storage - lock wallet
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
       throw new Error(
         "Session expired. Please close this dialog, unlock your wallet, and try again.",
       );
@@ -918,6 +1053,23 @@ const Home = () => {
       console.error("[Veil] Wallet is locked!");
       setIsLocked(true);
       throw new Error("Wallet is locked. Please unlock your wallet first.");
+    }
+
+    // Validate session expiry
+    const sessionValid = await isSessionValid();
+    if (!sessionValid) {
+      console.error("[Veil] Session expired. Locking wallet.");
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      // Clear chrome storage passwords
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
+      throw new Error("Session expired. Please unlock your wallet again.");
     }
 
     // Try to get password from state or storage
@@ -1144,6 +1296,16 @@ const Home = () => {
       return;
     }
 
+    // Validate session expiry
+    const sessionValid = await isSessionValid();
+    if (!sessionValid) {
+      console.warn("[Veil] Session expired. Locking wallet.");
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      return;
+    }
+
     // If password is not available but wallet is unlocked, just reload from storage
     if (!currentPassword) {
       console.log(
@@ -1225,28 +1387,86 @@ const Home = () => {
       throw new Error("Wallet is locked. Please unlock your wallet first.");
     }
 
-    // Try to get password from state or sessionStorage
+    // Validate session expiry
+    const sessionValid = await isSessionValid();
+    if (!sessionValid) {
+      setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      // Clear chrome storage passwords
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
+      throw new Error("Session expired. Please unlock your wallet again.");
+    }
+
+    // Try to get password from state or storage
     let currentPassword = password;
     if (!currentPassword) {
-      // Check session password first (persistent across remounts)
+      // Check sessionStorage first
       const sessionPassword = sessionStorage.getItem("veil:session_password");
       if (sessionPassword) {
         currentPassword = sessionPassword;
         setPassword(sessionPassword);
       } else {
-        // Fallback to temp password
+        // Check chrome.storage.session
+        try {
+          const sessionData = await chrome.storage.session.get(
+            "veil:session_password",
+          );
+          if (sessionData["veil:session_password"]) {
+            currentPassword = sessionData["veil:session_password"] as string;
+            setPassword(currentPassword);
+            // Also sync to sessionStorage for consistency
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // chrome.storage.session not available
+        }
+      }
+
+      // If still no password, check temp password in sessionStorage
+      if (!currentPassword) {
         const tempPassword = sessionStorage.getItem("veil:temp_password");
         if (tempPassword) {
           currentPassword = tempPassword;
           setPassword(tempPassword);
         }
       }
+
+      // Final fallback: check chrome.storage.local
+      if (!currentPassword) {
+        try {
+          const localData = await chrome.storage.local.get(
+            "veil:temp_session_password",
+          );
+          if (localData["veil:temp_session_password"]) {
+            currentPassword = localData["veil:temp_session_password"] as string;
+            setPassword(currentPassword);
+            // Also sync to sessionStorage for consistency
+            sessionStorage.setItem("veil:session_password", currentPassword);
+          }
+        } catch {
+          // chrome.storage.local not available
+        }
+      }
     }
 
     if (!currentPassword) {
-      // If wallet is unlocked but password not found, this is a state issue
-      // Prompt user to unlock again
+      // If wallet is unlocked but password not found after checking all storage, lock wallet
       setIsLocked(true);
+      setPassword("");
+      sessionStorage.removeItem("veil:session_password");
+      // Clear chrome storage passwords
+      try {
+        await chrome.storage.session.remove("veil:session_password");
+      } catch {
+        // Ignore
+      }
+      await chrome.storage.local.remove("veil:temp_session_password");
       throw new Error("Session expired. Please unlock your wallet again.");
     }
 
