@@ -8,12 +8,22 @@ const SETTINGS_KEYS = {
 } as const;
 
 /**
- * Get Privacy Cash mode setting (default: false = normal wallet mode)
+ * Get Privacy Cash mode setting.
+ *
+ * Privacy Cash mode is **ON by default** to match the "Privacy by Default"
+ * positioning. We only turn it off if the user has explicitly disabled it.
  */
 export async function getPrivacyCashMode(): Promise<boolean> {
   const result = await chrome.storage.local.get(SETTINGS_KEYS.PRIVACY_CASH_MODE);
-  // Default to false (normal wallet mode)
-  return result[SETTINGS_KEYS.PRIVACY_CASH_MODE] === true;
+  const stored = result[SETTINGS_KEYS.PRIVACY_CASH_MODE];
+
+  // Default: true (Privacy Cash mode enabled) when no preference is stored
+  if (stored === undefined) {
+    return true;
+  }
+
+  // Otherwise, respect the stored boolean
+  return stored === true;
 }
 
 /**

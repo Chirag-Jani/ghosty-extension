@@ -20,7 +20,7 @@ const Settings = () => {
   const [activeWallet, setActiveWallet] = useState<BurnerWallet | null>(null);
   const [archivedWallets, setArchivedWallets] = useState<BurnerWallet[]>([]);
   const [selectedWalletForExport, setSelectedWalletForExport] = useState<BurnerWallet | null>(null);
-  const [privacyCashMode, setPrivacyCashModeState] = useState<boolean>(false);
+  const [privacyCashMode, setPrivacyCashModeState] = useState<boolean>(true);
 
   // Load active wallet, archived wallets count, and settings on mount
   useEffect(() => {
@@ -146,11 +146,11 @@ const Settings = () => {
                   <Key className="w-5 h-5 text-blue-400" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-sm">Privacy Cash Mode</p>
+                  <p className="font-semibold text-sm">Privacy Cash Mode (Default)</p>
                   <p className="text-xs text-gray-500">
                     {privacyCashMode 
-                      ? 'Using Privacy Cash for private transactions' 
-                      : 'Using normal wallet mode (default)'}
+                      ? 'Using Privacy Cash for private transactions (default)'
+                      : 'Using normal wallet mode'}
                   </p>
                 </div>
               </div>

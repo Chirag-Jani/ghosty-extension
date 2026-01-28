@@ -63,13 +63,13 @@ Each burner wallet is:
 
 - **Automatic Balance Monitoring:** Background service worker monitors all burner wallets for incoming SOL deposits (configurable interval, default: 30 seconds).
 - **Real-time Updates:** Wallet balances automatically update when new SOL arrives.
-- **Privacy Cash Integration (Optional):** 
-  - **Toggle in Settings:** Privacy Cash mode can be enabled/disabled via Settings (default: disabled, normal wallet mode)
-  - **When Enabled:**
+- **Privacy Cash Integration (Default On):** 
+  - **Toggle in Settings:** Privacy Cash mode is enabled by default to match Veil's "Privacy by Default" positioning, and can be turned off if the user prefers normal wallet mode.
+  - **When Enabled (Default):**
     - **Deposit:** Move funds from burner wallets to Privacy Cash for unlinkable on-chain privacy (fully tested ✅)
     - **Withdraw:** Move funds from Privacy Cash back to any wallet address (fully tested ✅, includes automatic retry for blockhash expiration)
     - **Private Balance:** Display of private balance from Privacy Cash UTXOs
-  - **When Disabled (Default):** Normal wallet mode - shows regular SOL balance, no Privacy Cash features
+  - **When Disabled:** Normal wallet mode - shows regular SOL balance, no Privacy Cash features
 - **Transfer:** Transfer SOL between wallets with improved error handling and confirmation
 - **Real-time Price:** Dynamic SOL/USD price fetching from CoinGecko API
 - **Modern UI:** Compact, modern transaction history with detailed transaction views

@@ -3,6 +3,7 @@
  */
 
 import type { Keypair } from '@solana/web3.js';
+import { retireBurner } from './keyManager';
 
 export interface BurnerWallet {
   id: number;
@@ -133,6 +134,8 @@ export async function archiveBurnerWallet(walletIndex: number): Promise<void> {
     wallet.archived = true;
     wallet.isActive = false; // Deactivate when archiving
     await chrome.storage.local.set({ [key]: wallet });
+    // Explicitly retire this burner index so it is never reused
+    await retireBurner(walletIndex);
   }
 }
 
